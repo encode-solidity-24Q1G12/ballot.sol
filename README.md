@@ -36,8 +36,8 @@ Status: success
 Transaction hash: `0x79166016047c854671a79445718d7d8998b332979d7f06c0156973b762a72a96`  
 Status: success
 
-4. Voter 0x7976b09CC24530ecfC0691f34bd0a7A6A7A32163
-Status: failed, Execution reverted with reason: Has no right to vote.
+4. Voter 0x7976b09CC24530ecfC0691f34bd0a7A6A7A32163  
+Status: failed, Execution reverted with reason: Has no right to vote.  
 
 ## 4. Give right to vote - GiveRightToVote.ts
 
