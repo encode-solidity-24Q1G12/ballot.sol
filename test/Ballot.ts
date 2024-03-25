@@ -7,11 +7,11 @@ const PROPOSALS = ["Proposal 1", "Proposal 2", "Proposal 3"];
 
 async function deployContract() {
     const publicClient = await viem.getPublicClient();
-    const [deployer, otherAccount] = await viem.getWalletClients();
+    const [deployer, otherAccount, otherAccount2] = await viem.getWalletClients();
     const ballotContract = await viem.deployContract("Ballot", [
       PROPOSALS.map((prop) => toHex(prop, { size: 32 })),
     ]);
-    return { publicClient, deployer, otherAccount, ballotContract };
+    return { publicClient, deployer, otherAccount, ballotContract, otherAccount2 };
 }
 
 describe("Ballot", async () => {
@@ -55,7 +55,7 @@ describe("Ballot", async () => {
       expect(voter[0]).to.eq(1n);
     });
     it("can not give right to vote for someone that has voted", async () => {
-      const { ballotContract, otherAccount,  } = await loadFixture(deployContract);
+      const { ballotContract, otherAccount } = await loadFixture(deployContract);
       await ballotContract.write.giveRightToVote([
         otherAccount.account.address,
       ]);
@@ -83,7 +83,7 @@ describe("Ballot", async () => {
 
   describe("when the voter interacts with the vote function in the contract", async () => {
     it("should register the vote", async () => {
-      const { ballotContract, otherAccount,  } = await loadFixture(deployContract);
+      const { ballotContract, otherAccount } = await loadFixture(deployContract);
       await ballotContract.write.giveRightToVote([
         otherAccount.account.address,
       ]);
@@ -102,9 +102,21 @@ describe("Ballot", async () => {
   });
 
   describe("when the voter interacts with the delegate function in the contract", async () => {
-    // TODO
     it("should transfer voting power", async () => {
-      throw Error("Not implemented");
+      const { publicClient, ballotContract, otherAccount, otherAccount2 } = await loadFixture(deployContract);
+      await ballotContract.write.giveRightToVote([
+        otherAccount.account.address,
+      ]);
+      const ballotContractAsOtherAccount = await viem.getContractAt(
+        "Ballot",
+        ballotContract.address,
+        { walletClient: otherAccount }
+      );
+      // await ballotContractAsOtherAccount.write.delegate([
+      //   otherAccount2.account.address
+      // ]);
+      // const voter = await ballotContractAsOtherAccount.read.voters([otherAccount2.account.address])
+      // expect(voter[0]).to.eq(1n);
     });
   });
 
