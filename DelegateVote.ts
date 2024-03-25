@@ -11,7 +11,7 @@ const deployerPrivateKey = process.env.PRIVATE_KEY || "";
 
 async function main() {
     const parameters = process.argv.slice(2);
-    if (!parameters || parameters.length < 1)
+    if (!parameters || parameters.length < 2)
       throw new Error("Parameters not provided");
       const publicClient = createPublicClient({
         chain: sepolia,
@@ -20,8 +20,9 @@ async function main() {
     
     const account = privateKeyToAccount(`0x${deployerPrivateKey}`);
     const contractAddress = parameters[0] as `0x${string}`;
+    const delegateTo = parameters[1] as `0x${string}`;
 
-    const anyone = createWalletClient({
+    const voter = createWalletClient({
         account,
         chain: sepolia,
         transport: http(`https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`),
@@ -30,18 +31,24 @@ async function main() {
     if (!contractAddress) throw new Error("Contract address not provided");
     if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress))
       throw new Error("Invalid contract address");
-    //const voterAddress = parameters[1];
-    //if (!voterAddress) throw new Error("Voter address not provided");
+    if (!delegateTo) throw new Error("Delegation address not provided");
+    if (!/^0x[a-fA-F0-9]{40}$/.test(delegateTo))
+        throw new Error("Invalid delegation address");
+  
 
-    const result = await publicClient.readContract({
+    console.log(`Delegate vote to: ${delegateTo}`);
+
+    const hash = await voter.writeContract({
         address: contractAddress,
         abi,
-        functionName: "winnerName",
-        args: [],
-      }) as `0x${string}`;
-      console.log("The winner is:", hexToString(result, {size: 32}));
+        functionName: "delegate",
+        args: [delegateTo],
+      });
+    console.log("Transaction hash:", hash);
+    console.log("Waiting for confirmations...");
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    console.log("Transaction confirmed");
     process.exit();
-
 }
 
 main().catch((error) => {

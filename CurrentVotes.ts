@@ -6,42 +6,31 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const providerApiKey = process.env.ALCHEMY_API_KEY || "";
-const deployerPrivateKey = process.env.PRIVATE_KEY || "";
-
 
 async function main() {
     const parameters = process.argv.slice(2);
-    if (!parameters || parameters.length < 1)
-      throw new Error("Parameters not provided");
+    if (!parameters || parameters.length < 2)
+      throw new Error("Parameters not provided\nParam1: contract address\nParam2: proposalnumber");
       const publicClient = createPublicClient({
         chain: sepolia,
         transport: http(`https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`),
       });
     
-    const account = privateKeyToAccount(`0x${deployerPrivateKey}`);
     const contractAddress = parameters[0] as `0x${string}`;
-
-    const anyone = createWalletClient({
-        account,
-        chain: sepolia,
-        transport: http(`https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`),
-      });
+    const proposal = parameters[1];
 
     if (!contractAddress) throw new Error("Contract address not provided");
     if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress))
       throw new Error("Invalid contract address");
-    //const voterAddress = parameters[1];
-    //if (!voterAddress) throw new Error("Voter address not provided");
 
     const result = await publicClient.readContract({
         address: contractAddress,
         abi,
-        functionName: "winnerName",
-        args: [],
-      }) as `0x${string}`;
-      console.log("The winner is:", hexToString(result, {size: 32}));
+        functionName: "proposals",
+        args: [proposal],
+      }) as any[];
+      console.log(`Proposal ${proposal} ${hexToString(result[0], { size: 32 })} has ${result[1]} votes so far.`);
     process.exit();
-
 }
 
 main().catch((error) => {
