@@ -51,3 +51,10 @@ Status: success
 3. Proposal 2 Tea has 1 votes so far.  
 
 ## 6. Delegate vote - DelegateVotes.ts
+Voter 0x7976b09CC24530ecfC0691f34bd0a7A6A7A32163 delegates it's vote to 0xD6e0613A2cAEa9227e6E7eB2Bbe56F6E99EC08bb  
+Transaction hash: `0xa24477438a4c21d6d55790a9fdc11c0b2b2d9e544f9bae5ae6a03267e65d157f`  
+Status: succeed  
+
+## 7. Get Winning proposal - WinningProposal.ts
+The winner is: Chocolate
+
