@@ -43,5 +43,11 @@ Status: failed, Execution reverted with reason: Has no right to vote.
 
 1. Add voter 0x7976b09CC24530ecfC0691f34bd0a7A6A7A32163  
 Transaction hash: `0x26f609e2b5a81f5cd5fe0e74d6275608c6053f20c1170de7df323d5330720874`  
-Status: success
+Status: success  
 
+## 5. Get current vote count for proposals - CurrentVotes.ts
+1. Proposal 0 Chocolate has 2 votes so far.  
+2. Proposal 1 Soy has 0 votes so far.
+3. Proposal 2 Tea has 1 votes so far.  
+
+## 6. Delegate vote - DelegateVotes.ts
