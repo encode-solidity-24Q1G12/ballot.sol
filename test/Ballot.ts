@@ -6,49 +6,98 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 const PROPOSALS = ["Proposal 1", "Proposal 2", "Proposal 3"];
 
 async function deployContract() {
-  // TODO
+    const publicClient = await viem.getPublicClient();
+    const [deployer, otherAccount] = await viem.getWalletClients();
+    const ballotContract = await viem.deployContract("Ballot", [
+      PROPOSALS.map((prop) => toHex(prop, { size: 32 })),
+    ]);
+    return { publicClient, deployer, otherAccount, ballotContract };
 }
 
 describe("Ballot", async () => {
   describe("when the contract is deployed", async () => {
     it("has the provided proposals", async () => {
-      // TODO
-      throw Error("Not implemented");
+        const { ballotContract } = await loadFixture(deployContract);
+        for (let index = 0; index < PROPOSALS.length; index++) {
+          const proposal = await ballotContract.read.proposals([BigInt(index)]);
+          expect(hexToString(proposal[0], { size: 32 })).to.eq(PROPOSALS[index]);
+        }
     });
-
+    
     it("has zero votes for all proposals", async () => {
-      // TODO
-      throw Error("Not implemented");
+      const { ballotContract } = await loadFixture(deployContract);
+      for (let index = 0; index < PROPOSALS.length; index++) {
+        const proposal = await ballotContract.read.proposals([BigInt(index)]);
+        expect(proposal[1]).to.eq(0n);
+      }
     });
     it("sets the deployer address as chairperson", async () => {
-      // TODO
-      throw Error("Not implemented");
+      const { ballotContract, deployer } = await loadFixture(deployContract);
+      const chairperson = await ballotContract.read.chairperson();
+      expect(chairperson.toLowerCase()).to.eq(deployer.account.address);
     });
     it("sets the voting weight for the chairperson as 1", async () => {
-      // TODO
-      throw Error("Not implemented");
+      const { ballotContract } = await loadFixture(deployContract);
+      const chairperson = await ballotContract.read.chairperson();
+      const chairpersonVoter = await ballotContract.read.voters([chairperson]);
+      expect(chairpersonVoter[0]).to.eq(1n);
     });
   });
 
   describe("when the chairperson interacts with the giveRightToVote function in the contract", async () => {
-    it("gives right to vote for another address", async () => {
-      // TODO
-      throw Error("Not implemented");
+    it("gives right to vote for another address", async () => { 
+      const { publicClient, ballotContract, otherAccount } = await loadFixture(deployContract);
+      const txHash = await ballotContract.write.giveRightToVote([
+        otherAccount.account.address,
+      ]);
+      await publicClient.getTransactionReceipt({ hash: txHash });
+      const voter = await ballotContract.read.voters([otherAccount.account.address])
+      expect(voter[0]).to.eq(1n);
     });
     it("can not give right to vote for someone that has voted", async () => {
-      // TODO
-      throw Error("Not implemented");
+      const { ballotContract, otherAccount,  } = await loadFixture(deployContract);
+      await ballotContract.write.giveRightToVote([
+        otherAccount.account.address,
+      ]);
+      const ballotContractAsOtherAccount = await viem.getContractAt(
+        "Ballot",
+        ballotContract.address,
+        { walletClient: otherAccount }
+      );
+      await ballotContractAsOtherAccount.write.vote([BigInt(0)])
+      await expect(
+        ballotContract.write.giveRightToVote([
+          otherAccount.account.address,
+        ])
+      ).to.be.rejectedWith("The voter already voted.");
     });
     it("can not give right to vote for someone that has already voting rights", async () => {
-      // TODO
-      throw Error("Not implemented");
+      const { ballotContract, otherAccount,  } = await loadFixture(deployContract);
+      await expect(
+        ballotContract.write.giveRightToVote([
+          otherAccount.account.address,
+        ])
+      ).to.be.rejectedWith("The voter already voted.");
     });
   });
 
   describe("when the voter interacts with the vote function in the contract", async () => {
-    // TODO
     it("should register the vote", async () => {
-      throw Error("Not implemented");
+      const { ballotContract, otherAccount,  } = await loadFixture(deployContract);
+      await ballotContract.write.giveRightToVote([
+        otherAccount.account.address,
+      ]);
+      const ballotContractAsOtherAccount = await viem.getContractAt(
+        "Ballot",
+        ballotContract.address,
+        { walletClient: otherAccount }
+      );
+
+      const proposal_index_example = 0
+      const proposal_before_vote = await ballotContract.read.proposals([BigInt(proposal_index_example)]);
+      await ballotContractAsOtherAccount.write.vote([BigInt(proposal_index_example)])
+      const proposal_after_vote = await ballotContract.read.proposals([BigInt(proposal_index_example)]);
+      expect(proposal_after_vote[1]).to.eq(proposal_before_vote[1] + BigInt(1));
     });
   });
 
